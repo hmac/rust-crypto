@@ -3,7 +3,7 @@
 // e.g. "YELLOW SUBMARINE" padded to 20 bytes becomes "YELLOW SUBMARINE\x04\x04\x04\x04"
 
 pub fn pad(block: &[u8], length: u8) -> Vec<u8> {
-    let block_len = block.len().to_u8().expect("invalid block length");
+    let block_len = block.len() as u8;
     let padding_len = if block_len < length {
         length - block_len
     } else { 0 };
@@ -11,7 +11,7 @@ pub fn pad(block: &[u8], length: u8) -> Vec<u8> {
     for b in block.iter() {
         v.push(b.clone());
     }
-    for _ in range(0, padding_len) {
+    for _ in 0..padding_len {
         v.push(padding_len);
     }
     v

@@ -7,18 +7,18 @@ pub fn encrypt(data: &[u8], key: &[u8], iv: Vec<u8>) -> Vec<u8> {
     let padded_key = pad_block(key, len);
 
     let crypter = Crypter::new(AES_128_ECB);
-    crypter.init(Encrypt, padded_key.as_slice(), iv.clone());
+    crypter.init(Encrypt, padded_key.as_slice(), iv.as_slice());
     crypter.pad(false);
 
     let pt_blocks = to_blocks(data, len);
-    let mut ciphertext: Vec<Vec<u8>> = Vec::new();
+    let mut ciphertext: Vec<u8> = Vec::new();
     let mut cipherblock = iv;
     for block in pt_blocks.iter() {
         cipherblock = xor(cipherblock.as_slice(), block.as_slice());
         cipherblock = crypter.update(cipherblock.as_slice());
-        ciphertext.push(cipherblock.clone());
+        ciphertext.extend_from_slice(cipherblock.as_slice());
     }
-    return ciphertext.as_slice().concat_vec()
+    return ciphertext
 }
 
 pub fn decrypt(data: &[u8], key: &[u8], iv: Vec<u8>) -> Vec<u8> {
@@ -28,18 +28,18 @@ pub fn decrypt(data: &[u8], key: &[u8], iv: Vec<u8>) -> Vec<u8> {
     let ct_blocks = to_blocks(data, len);
 
     let crypter = Crypter::new(AES_128_ECB);
-    crypter.init(Decrypt, padded_key.as_slice(), iv.clone());
+    crypter.init(Decrypt, padded_key.as_slice(), iv.as_slice());
     crypter.pad(false);
 
-    let mut plaintext: Vec<Vec<u8>> = Vec::new();
+    let mut plaintext: Vec<u8> = Vec::new();
     let mut ct_block = iv;
     for block in ct_blocks.iter() {
         let decrypted_block = crypter.update(block.as_slice());
         let xor_block = xor(ct_block.as_slice(), decrypted_block.as_slice()); 
-        plaintext.push(xor_block.clone());
+        plaintext.extend_from_slice(xor_block.as_slice());
         ct_block = block.clone();
     }
-    return plaintext.as_slice().concat_vec()
+    return plaintext
 }
 
 // Holds all bytes of a ciphertext/plaintext, and implements Iterator that
@@ -50,13 +50,15 @@ struct BlockVector {
     blocksize: u8
 }
 
-impl Iterator<Vec<u8>> for BlockVector {
+impl Iterator for BlockVector {
+    type Item = Vec<u8>;
+
     fn next(&mut self) -> Option<Vec<u8>> {
         if self.data.len() == 0 {
             return None;
         }
         let mut next_block = Vec::new();
-        for _ in range(0, self.blocksize) {
+        for _ in 0..self.blocksize {
             let b = self.data.pop();
             if b.is_none() {
                 break;
@@ -71,7 +73,7 @@ fn to_blocks(data: &[u8], length: u8) -> Vec<Vec<u8>> {
     let mut blocks: Vec<Vec<u8>> = Vec::new();
     let mut padded_data = pad_block(data, length);
     padded_data.reverse(); // This allows us to optimise BlockVector
-    let mut block_vec = BlockVector {data: padded_data, blocksize: 16};
+    let block_vec = BlockVector {data: padded_data, blocksize: 16};
 
     for block in block_vec {
         blocks.push(block);
@@ -81,7 +83,7 @@ fn to_blocks(data: &[u8], length: u8) -> Vec<Vec<u8>> {
 }
 
 fn pad_block(block: &[u8], length: u8) -> Vec<u8> {
-    let block_len: u8 = block.len().to_u8().unwrap_or(0);
+    let block_len: u8 = block.len() as u8;
     if block_len % length == 0 {
         return block.to_vec();
     }
@@ -94,7 +96,7 @@ fn pad_block(block: &[u8], length: u8) -> Vec<u8> {
     for b in block.iter() {
         v.push(b.clone());
     }
-    for _ in range(0, padding_len) {
+    for _ in 0..padding_len {
         v.push(padding_len);
     }
     v.clone()

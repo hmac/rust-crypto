@@ -4,5 +4,6 @@ name = "crypto"
 version = "0.0.1"
 authors = ["Harry Maclean <harryjmaclean@googlemail.com>"]
 
-[dependencies.openssl]
-git = "https://github.com/sfackler/rust-openssl.git"
+[dependencies]
+openssl = "0.7.6"
+rand = "^0.3.14"
