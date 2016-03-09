@@ -1,6 +1,6 @@
 extern crate crypto;
-extern crate serialize;
-use serialize::hex::FromHex;
+extern crate rustc_serialize;
+use rustc_serialize::hex::FromHex;
 use crypto::aes::ecb;
 use crypto::aes::cbc;
 use crypto::pkcs7;
@@ -16,8 +16,6 @@ fn test_encrypt_128() {
     let key = dehex("edfdb257cb37cdf182c5455b0c0efebb");
     let expected_ct = dehex("7888beae6e7a426332a7eaa2f808e637");
     let ct = ecb::encrypt_128(pt.as_slice(), key.as_slice());
-    println!("{}", ct);
-    println!("{}", expected_ct);
     assert!(ct == expected_ct);
 }
 
@@ -27,8 +25,6 @@ fn test_decrypt_128() {
     let ct = dehex("065bd5a9540d22d5d7b0f75d66cb8b30");
     let expected_pt = dehex("46f2c98932349c338e9d67f744a1c988");
     let pt = ecb::decrypt_128(ct.as_slice(), key.as_slice());
-    println!("{}", pt);
-    println!("{}", expected_pt);
     assert!(pt == expected_pt);
 }
 
@@ -42,8 +38,6 @@ fn test_encrypt() {
     let iv = dehex("2fe2b333ceda8f98f4a99b40d2cd34a8");
     let expected_ct = dehex("0f61c4d44c5147c03c195ad7e2cc12b2");
     let ct = cbc::encrypt(pt.as_slice(), key.as_slice(), iv);
-    println!("{}", ct);
-    println!("{}", expected_ct);
     assert!(ct == expected_ct);
 
     // 2 blocks
@@ -52,8 +46,6 @@ fn test_encrypt() {
     let pt = dehex("068b25c7bfb1f8bdd4cfc908f69dffc5ddc726a197f0e5f720f730393279be91");
     let expected_ct = dehex("c4dc61d9725967a3020104a9738f23868527ce839aab1752fd8bdb95a82c4d00");
     let ct = cbc::encrypt(pt.as_slice(), key.as_slice(), iv);
-    println!("{}", ct);
-    println!("{}", expected_ct);
     assert!(ct == expected_ct);
 }
 
@@ -65,8 +57,6 @@ fn test_decrypt() {
     let ct = dehex("f8eb31b31e374e960030cd1cadb0ef0c");
     let expected_pt = dehex("940bc76d61e2c49dddd5df7f37fcf105");
     let pt = cbc::decrypt(ct.as_slice(), key.as_slice(), iv);
-    println!("{}", pt);
-    println!("{}", expected_pt);
     assert!(pt == expected_pt);
 
     // 2 blocks
@@ -75,16 +65,15 @@ fn test_decrypt() {
     let ct = dehex("5d6fed86f0c4fe59a078d6361a142812514b295dc62ff5d608a42ea37614e6a1");
     let expected_pt = dehex("360dc1896ce601dfb2a949250067aad96737847a4580ede2654a329b842fe81e");
     let pt = cbc::decrypt(ct.as_slice(), key.as_slice(), iv);
-    println!("{}", pt);
-    println!("{}", expected_pt);
-    assert!(pt == expected_pt);
+    assert_eq!(pt, expected_pt);
 }
 
 // PKCS#7
 #[test]
 fn test_padding() {
-    assert!(pkcs7::pad(&[0u8], 2) == vec![0u8, 1]);
-    assert!(pkcs7::pad(&[0u8], 1) == vec![0u8]);
-    let expected = ("YELLOW SUBMARINE".as_bytes()).to_vec() + vec![4,4,4,4];
-    assert!(pkcs7::pad("YELLOW SUBMARINE".as_bytes(), 20) == expected)
+    assert_eq!(vec![0u8, 1], pkcs7::pad(&[0u8], 2));
+    assert_eq!(vec![0u8], pkcs7::pad(&[0u8], 1));
+    let mut expected: Vec<u8> = ("YELLOW SUBMARINE".as_bytes()).to_vec();
+    expected.extend(vec![4,4,4,4]);
+    assert_eq!(expected, pkcs7::pad("YELLOW SUBMARINE".as_bytes(), 20))
 }
