@@ -34,3 +34,15 @@ pub fn pad(data: &[u8], blocksize: u8) -> Vec<u8> {
     }
     return res;
 }
+
+// Removes padding from a bytestring.
+
+pub fn unpad(data: &[u8]) -> Vec<u8> {
+    let mut res = data.to_vec();
+    let last_byte = *data.last().unwrap_or(&0u8);
+
+    for _ in 0..last_byte {
+        res.pop();
+    }
+    return res;
+}

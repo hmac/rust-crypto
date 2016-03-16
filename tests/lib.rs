@@ -84,3 +84,9 @@ fn test_pad() {
     assert_eq!(vec![0u8, 0, 0, 0, 0, 3, 3, 3], pkcs7::pad(&vec![0u8; 5], 4));
     assert_eq!(vec![0u8, 0, 0, 0, 4, 4, 4, 4], pkcs7::pad(&vec![0u8; 4], 4));
 }
+
+#[test]
+fn test_unpad() {
+    assert_eq!(vec![0u8; 3], pkcs7::unpad(&vec![0u8, 0, 0, 1]));
+    assert_eq!(vec![0u8; 4], pkcs7::unpad(&vec![0u8, 0, 0, 0, 4, 4, 4, 4]));
+}
