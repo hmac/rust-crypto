@@ -70,10 +70,17 @@ fn test_decrypt() {
 
 // PKCS#7
 #[test]
-fn test_padding() {
-    assert_eq!(vec![0u8, 1], pkcs7::pad(&[0u8], 2));
-    assert_eq!(vec![0u8], pkcs7::pad(&[0u8], 1));
+fn test_pad_block() {
+    assert_eq!(vec![0u8, 1], pkcs7::pad_block(&[0u8], 2));
+    assert_eq!(vec![0u8], pkcs7::pad_block(&[0u8], 1));
     let mut expected: Vec<u8> = ("YELLOW SUBMARINE".as_bytes()).to_vec();
     expected.extend(vec![4,4,4,4]);
-    assert_eq!(expected, pkcs7::pad("YELLOW SUBMARINE".as_bytes(), 20))
+    assert_eq!(expected, pkcs7::pad_block("YELLOW SUBMARINE".as_bytes(), 20));
+}
+
+#[test]
+fn test_pad() {
+    assert_eq!(vec![0u8, 0, 0, 1], pkcs7::pad(&vec![0u8; 3], 4));
+    assert_eq!(vec![0u8, 0, 0, 0, 0, 3, 3, 3], pkcs7::pad(&vec![0u8; 5], 4));
+    assert_eq!(vec![0u8, 0, 0, 0, 4, 4, 4, 4], pkcs7::pad(&vec![0u8; 4], 4));
 }
